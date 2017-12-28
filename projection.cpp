@@ -7,6 +7,7 @@
 struct projection projections[] = {
 	{"EPSG:4326", lonlat2tile, tile2lonlat, "urn:ogc:def:crs:OGC:1.3:CRS84"},
 	{"EPSG:3857", epsg3857totile, tiletoepsg3857, "urn:ogc:def:crs:EPSG::3857"},
+	{"EPSG:4490", epsg4490totile, tiletoepsg4490, "urn:ogc:def:crs:EPSG::4490"},
 	{NULL, NULL, NULL, NULL},
 };
 
@@ -66,6 +67,40 @@ void tiletoepsg3857(long long ix, long long iy, int zoom, double *ox, double *oy
 
 	*ox = (ix - (1LL << 31)) * M_PI * 6378137.0 / (1LL << 31);
 	*oy = ((1LL << 32) - 1 - iy - (1LL << 31)) * M_PI * 6378137.0 / (1LL << 31);
+}
+
+void epsg4490totile(double lon, double lat, int zoom, long long *x, long long *y) {
+	// Must limit latitude somewhere to prevent overflow.
+	// 89.9 degrees latitude is 0.621 worlds beyond the edge of the flat earth,
+	// hopefully far enough out that there are few expectations about the shape.
+	if (lat < -89.9) {
+		lat = -89.9;
+	}
+	if (lat > 89.9) {
+		lat = 89.9;
+	}
+
+	if (lon < -360) {
+		lon = -360;
+	}
+	if (lon > 360) {
+		lon = 360;
+	}
+
+	double lat_rad = lat * M_PI / 180;
+	unsigned long long n = 1LL << zoom;
+
+	long long llx = n * ((lon + 180) / 360);
+	long long lly = n * ((90 - lat) / 360);
+
+	*x = llx;
+	*y = lly;
+}
+
+void tiletoepsg4490(long long x, long long y, int zoom, double *lon, double *lat) {
+	unsigned long long n = 1LL << zoom;
+	*lon = 360.0 * x / n - 180.0;
+	*lat = 90 - 360 * y / n;
 }
 
 unsigned long long encode(unsigned int wx, unsigned int wy) {
