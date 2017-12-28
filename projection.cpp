@@ -87,7 +87,6 @@ void epsg4490totile(double lon, double lat, int zoom, long long *x, long long *y
 		lon = 360;
 	}
 
-	double lat_rad = lat * M_PI / 180;
 	unsigned long long n = 1LL << zoom;
 
 	long long llx = n * ((lon + 180) / 360);
