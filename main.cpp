@@ -2101,14 +2101,24 @@ int read_input(std::vector<source> &sources, char *fname, int maxzoom, int minzo
 
 	double minlat = 0, minlon = 0, maxlat = 0, maxlon = 0, midlat = 0, midlon = 0;
 
-	tile2lonlat(midx, midy, maxzoom, &minlon, &maxlat);
-	tile2lonlat(midx + 1, midy + 1, maxzoom, &maxlon, &minlat);
+	if (projection && strcmp(projection->name, "EPSG:4490") == 0) {
+		tiletoepsg4490(midx, midy, maxzoom, &minlon, &maxlat);
+		tiletoepsg4490(midx + 1, midy + 1, maxzoom, &maxlon, &minlat);
+	} else {
+		tile2lonlat(midx, midy, maxzoom, &minlon, &maxlat);
+		tile2lonlat(midx + 1, midy + 1, maxzoom, &maxlon, &minlat);
+	}
 
 	midlat = (maxlat + minlat) / 2;
 	midlon = (maxlon + minlon) / 2;
 
-	tile2lonlat(file_bbox[0], file_bbox[1], 32, &minlon, &maxlat);
-	tile2lonlat(file_bbox[2], file_bbox[3], 32, &maxlon, &minlat);
+	if (projection && strcmp(projection->name, "EPSG:4490") == 0) {
+		tiletoepsg4490(file_bbox[0], file_bbox[1], 32, &minlon, &maxlat);
+		tiletoepsg4490(file_bbox[2], file_bbox[3], 32, &maxlon, &minlat);
+	} else {
+		tile2lonlat(file_bbox[0], file_bbox[1], 32, &minlon, &maxlat);
+		tile2lonlat(file_bbox[2], file_bbox[3], 32, &maxlon, &minlat);
+	}
 
 	if (midlat < minlat) {
 		midlat = minlat;

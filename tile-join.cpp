@@ -568,8 +568,15 @@ void decode(struct reader *readers, std::map<std::string, layermap_entry> &layer
 		}
 
 		double lat1, lon1, lat2, lon2;
-		tile2lonlat(r->x, r->y, r->zoom, &lon1, &lat1);
-		tile2lonlat(r->x + 1, r->y + 1, r->zoom, &lon2, &lat2);
+
+		if (projection && strcmp(projection->name, "EPSG:4490") == 0) {
+			tiletoepsg4490(r->x, r->y, r->zoom, &lon1, &lat1);
+			tiletoepsg4490(r->x + 1, r->y + 1, r->zoom, &lon2, &lat2);
+		} else {
+			tile2lonlat(r->x, r->y, r->zoom, &lon1, &lat1);
+			tile2lonlat(r->x + 1, r->y + 1, r->zoom, &lon2, &lat2);
+		}
+
 		minlat = min(lat2, minlat);
 		minlon = min(lon1, minlon);
 		maxlat = max(lat1, maxlat);
