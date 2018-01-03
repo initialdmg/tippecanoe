@@ -99,7 +99,7 @@ void epsg4490totile(double lon, double lat, int zoom, long long *x, long long *y
 void tiletoepsg4490(long long x, long long y, int zoom, double *lon, double *lat) {
 	unsigned long long n = 1LL << zoom;
 	*lon = 360.0 * x / n - 180.0;
-	*lat = 90 - 360 * y / n;
+	*lat = 90 - 360.0 * y / n;
 }
 
 unsigned long long encode(unsigned int wx, unsigned int wy) {
