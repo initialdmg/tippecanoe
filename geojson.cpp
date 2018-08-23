@@ -82,19 +82,13 @@ int serialize_geojson_feature(struct serialization_state *sst, json_object *geom
 
 	if (tippecanoe != NULL) {
 		json_object *min = json_hash_get(tippecanoe, "minzoom");
-		if (min != NULL && min->type == JSON_NUMBER) {
-			tippecanoe_minzoom = min->number;
-		}
-		if (min != NULL && min->type == JSON_STRING) {
-			tippecanoe_minzoom = atoi(min->string);
+		if (min != NULL && (min->type == JSON_STRING || min->type == JSON_NUMBER)) {
+			tippecanoe_minzoom = integer_zoom(sst->fname, min->string);
 		}
 
 		json_object *max = json_hash_get(tippecanoe, "maxzoom");
-		if (max != NULL && max->type == JSON_NUMBER) {
-			tippecanoe_maxzoom = max->number;
-		}
-		if (max != NULL && max->type == JSON_STRING) {
-			tippecanoe_maxzoom = atoi(max->string);
+		if (max != NULL && (max->type == JSON_STRING || max->type == JSON_NUMBER)) {
+			tippecanoe_maxzoom = integer_zoom(sst->fname, max->string);
 		}
 
 		json_object *ln = json_hash_get(tippecanoe, "layer");
@@ -193,7 +187,6 @@ int serialize_geojson_feature(struct serialization_state *sst, json_object *geom
 	sf.has_tippecanoe_maxzoom = (tippecanoe_maxzoom != -1);
 	sf.tippecanoe_maxzoom = tippecanoe_maxzoom;
 	sf.geometry = dv;
-	sf.m = m;
 	sf.feature_minzoom = 0;  // Will be filled in during index merging
 	sf.seq = *(sst->layer_seq);
 
@@ -222,7 +215,7 @@ void check_crs(json_object *j, const char *reading) {
 		json_object *properties = json_hash_get(crs, "properties");
 		if (properties != NULL) {
 			json_object *name = json_hash_get(properties, "name");
-			if (name->type == JSON_STRING) {
+			if (name != NULL && name->type == JSON_STRING) {
 				if (strcmp(name->string, projection->alias) != 0) {
 					if (!quiet) {
 						fprintf(stderr, "%s: Warning: GeoJSON specified projection \"%s\", not the expected \"%s\".\n", reading, name->string, projection->alias);
@@ -342,7 +335,7 @@ void parse_json(struct serialization_state *sst, json_pull *jp, int layer, std::
 		json_object *id = json_hash_get(j, "id");
 
 		json_object *geometries = json_hash_get(geometry, "geometries");
-		if (geometries != NULL) {
+		if (geometries != NULL && geometries->type == JSON_ARRAY) {
 			size_t g;
 			for (g = 0; g < geometries->length; g++) {
 				serialize_geojson_feature(sst, geometries->array[g], properties, id, layer, tippecanoe, j, layername);

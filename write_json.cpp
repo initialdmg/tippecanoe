@@ -1,3 +1,8 @@
+// for vasprintf() on Linux
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -332,6 +337,12 @@ void layer_to_geojson(mvt_layer const &layer, unsigned z, unsigned x, unsigned y
 			} else if (val.type == mvt_bool) {
 				state.json_write_string(key);
 				state.json_write_bool(val.numeric_value.bool_value);
+			} else if (val.type == mvt_null) {
+				state.json_write_string(key);
+				state.json_write_null();
+			} else {
+				fprintf(stderr, "Internal error: property with unknown type\n");
+				exit(EXIT_FAILURE);
 			}
 		}
 

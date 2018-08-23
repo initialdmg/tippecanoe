@@ -17,6 +17,7 @@
 #include "text.hpp"
 #include "milo/dtoa_milo.h"
 #include "write_json.hpp"
+#include "version.hpp"
 
 sqlite3 *mbtiles_open(char *dbname, char **argv, int forcetable) {
 	sqlite3 *outdb;
@@ -264,7 +265,7 @@ void tilestats(std::map<std::string, layermap_entry> const &layermap1, size_t el
 	state.json_end_hash();
 }
 
-void mbtiles_write_metadata(sqlite3 *outdb, const char *outdir, const char *fname, int minzoom, int maxzoom, double minlat, double minlon, double maxlat, double maxlon, double midlat, double midlon, int forcetable, const char *attribution, std::map<std::string, layermap_entry> const &layermap, bool vector, const char *description, bool do_tilestats) {
+void mbtiles_write_metadata(sqlite3 *outdb, const char *outdir, const char *fname, int minzoom, int maxzoom, double minlat, double minlon, double maxlat, double maxlon, double midlat, double midlon, int forcetable, const char *attribution, std::map<std::string, layermap_entry> const &layermap, bool vector, const char *description, bool do_tilestats, std::map<std::string, std::string> const &attribute_descriptions, std::string const &program) {
 	char *sql, *err;
 
 	sqlite3 *db = outdb;
@@ -371,6 +372,16 @@ void mbtiles_write_metadata(sqlite3 *outdb, const char *outdir, const char *fnam
 	}
 	sqlite3_free(sql);
 
+	std::string version = program + " " + VERSION;
+	sql = sqlite3_mprintf("INSERT INTO metadata (name, value) VALUES ('generator', %Q);", version.c_str());
+	if (sqlite3_exec(db, sql, NULL, NULL, &err) != SQLITE_OK) {
+		fprintf(stderr, "set type: %s\n", err);
+		if (!forcetable) {
+			exit(EXIT_FAILURE);
+		}
+	}
+	sqlite3_free(sql);
+
 	if (vector) {
 		size_t elements = 100;
 		std::string buf;
@@ -397,7 +408,7 @@ void mbtiles_write_metadata(sqlite3 *outdb, const char *outdir, const char *fnam
 				state.json_write_string(lnames[i]);
 
 				state.json_write_string("description");
-				state.json_write_string("");
+				state.json_write_string(fk->second.description);
 
 				state.json_write_string("minzoom");
 				state.json_write_signed(fk->second.minzoom);
@@ -417,19 +428,24 @@ void mbtiles_write_metadata(sqlite3 *outdb, const char *outdir, const char *fnam
 
 					state.json_write_string(j->first);
 
-					int type = 0;
-					for (auto s : j->second.sample_values) {
-						type |= (1 << s.type);
-					}
+					auto f = attribute_descriptions.find(j->first);
+					if (f == attribute_descriptions.end()) {
+						int type = 0;
+						for (auto s : j->second.sample_values) {
+							type |= (1 << s.type);
+						}
 
-					if (type == (1 << mvt_double)) {
-						state.json_write_string("Number");
-					} else if (type == (1 << mvt_bool)) {
-						state.json_write_string("Boolean");
-					} else if (type == (1 << mvt_string)) {
-						state.json_write_string("String");
+						if (type == (1 << mvt_double)) {
+							state.json_write_string("Number");
+						} else if (type == (1 << mvt_bool)) {
+							state.json_write_string("Boolean");
+						} else if (type == (1 << mvt_string)) {
+							state.json_write_string("String");
+						} else {
+							state.json_write_string("Mixed");
+						}
 					} else {
-						state.json_write_string("Mixed");
+						state.json_write_string(f->second);
 					}
 				}
 
@@ -550,6 +566,7 @@ std::map<std::string, layermap_entry> merge_layermaps(std::vector<std::map<std::
 				auto out_entry = out.find(layername);
 				out_entry->second.minzoom = map->second.minzoom;
 				out_entry->second.maxzoom = map->second.maxzoom;
+				out_entry->second.description = map->second.description;
 			}
 
 			auto out_entry = out.find(layername);
@@ -608,6 +625,10 @@ std::map<std::string, layermap_entry> merge_layermaps(std::vector<std::map<std::
 }
 
 void add_to_file_keys(std::map<std::string, type_and_string_stats> &file_keys, std::string const &attrib, type_and_string const &val) {
+	if (val.type == mvt_null) {
+		return;
+	}
+
 	auto fka = file_keys.find(attrib);
 	if (fka == file_keys.end()) {
 		file_keys.insert(std::pair<std::string, type_and_string_stats>(attrib, type_and_string_stats()));
