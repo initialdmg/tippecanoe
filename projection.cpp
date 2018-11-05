@@ -21,7 +21,7 @@ void lonlat2tile(double lon, double lat, int zoom, long long *x, long long *y) {
 	int lon_class = fpclassify(lon);
 
 	if (lat_class == FP_INFINITE || lat_class == FP_NAN) {
-		lat = 89.9;
+		lat = 90;
 	}
 	if (lon_class == FP_INFINITE || lon_class == FP_NAN) {
 		lon = 360;
@@ -30,11 +30,11 @@ void lonlat2tile(double lon, double lat, int zoom, long long *x, long long *y) {
 	// Must limit latitude somewhere to prevent overflow.
 	// 89.9 degrees latitude is 0.621 worlds beyond the edge of the flat earth,
 	// hopefully far enough out that there are few expectations about the shape.
-	if (lat < -89.9) {
-		lat = -89.9;
+	if (lat < -90) {
+		lat = -90;
 	}
-	if (lat > 89.9) {
-		lat = 89.9;
+	if (lat > 90) {
+		lat = 90;
 	}
 
 	if (lon < -360) {
@@ -44,11 +44,10 @@ void lonlat2tile(double lon, double lat, int zoom, long long *x, long long *y) {
 		lon = 360;
 	}
 
-	double lat_rad = lat * M_PI / 180;
 	unsigned long long n = 1LL << zoom;
 
 	long long llx = n * ((lon + 180) / 360);
-	long long lly = n * (1 - (log(tan(lat_rad) + 1 / cos(lat_rad)) / M_PI)) / 2;
+	long long lly = n * ((90 - lat) / 360);
 
 	*x = llx;
 	*y = lly;
@@ -58,7 +57,7 @@ void lonlat2tile(double lon, double lat, int zoom, long long *x, long long *y) {
 void tile2lonlat(long long x, long long y, int zoom, double *lon, double *lat) {
 	unsigned long long n = 1LL << zoom;
 	*lon = 360.0 * x / n - 180.0;
-	*lat = atan(sinh(M_PI * (1 - 2.0 * y / n))) * 180.0 / M_PI;
+	*lat = 90.0 - 360.0 * y / n;
 }
 
 void epsg3857totile(double ix, double iy, int zoom, long long *x, long long *y) {
