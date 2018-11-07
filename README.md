@@ -1,6 +1,8 @@
 tippecanoe
 ==========
 
+> This repository is a fork of `mapbox/tippecanoe`, but for CGCS2000 projection.
+
 Builds [vector tilesets](https://www.mapbox.com/developers/vector-tiles/) from large (or small) collections of [GeoJSON](http://geojson.org/), [Geobuf](https://github.com/mapbox/geobuf), or [CSV](https://en.wikipedia.org/wiki/Comma-separated_values) features,
 [like these](MADE_WITH.md).
 
