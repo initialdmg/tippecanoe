@@ -312,7 +312,7 @@ Parallel processing will also be automatic if the input file is in Geobuf format
 
 ### Projection of input
 
- * `-s` _projection_ or `--projection=`_projection_: Specify the projection of the input data. Currently supported are `EPSG:4326` (WGS84, the default) and `EPSG:3857` (Web Mercator). In general you should use WGS84 for your input files if at all possible.
+ * `-s` _projection_ or `--projection=`_projection_: Specify the projection of the input data. Currently supported are `EPSG:4490` (CGCS2000, the default) and `EPSG:4087` (World Equidistant Cylindrical). In general you should use CGCS2000 for your input files if at all possible.
 
 ### Zoom levels
 
@@ -799,7 +799,7 @@ resolutions.
 
 ### Options
 
- * `-s` _projection_ or `--projection=`*projection*: Specify the projection of the output data. Currently supported are EPSG:4326 (WGS84, the default) and EPSG:3857 (Web Mercator).
+ * `-s` _projection_ or `--projection=`*projection*: Specify the projection of the output data. Currently supported are EPSG:4490 (CGCS2000, the default) and EPSG:4087 (World Equidistant Cylindrical).
  * `-z` _maxzoom_ or `--maximum-zoom=`*maxzoom*: Specify the highest zoom level to decode from the tileset
  * `-Z` _minzoom_ or `--minimum-zoom=`*minzoom*: Specify the lowest zoom level to decode from the tileset
  * `-l` _layer_ or `--layer=`*layer*: Decode only layers with the specified names. (Multiple `-l` options can be specified.)

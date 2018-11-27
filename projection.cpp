@@ -6,8 +6,8 @@
 #include "projection.hpp"
 
 struct projection projections[] = {
-	{"EPSG:4326", lonlat2tile, tile2lonlat, "urn:ogc:def:crs:OGC:1.3:CRS84"},
-	{"EPSG:3857", epsg3857totile, tiletoepsg3857, "urn:ogc:def:crs:EPSG::3857"},
+	{"EPSG:4490", lonlat2tile, tile2lonlat, "urn:ogc:def:crs:EPSG::4490"},
+	{"EPSG:4087", epsg4087totile, tiletoepsg4087, "urn:ogc:def:crs:EPSG::4087"},
 	{NULL, NULL, NULL, NULL},
 };
 
@@ -60,7 +60,7 @@ void tile2lonlat(long long x, long long y, int zoom, double *lon, double *lat) {
 	*lat = 90.0 - 360.0 * y / n;
 }
 
-void epsg3857totile(double ix, double iy, int zoom, long long *x, long long *y) {
+void epsg4087totile(double ix, double iy, int zoom, long long *x, long long *y) {
 	// Place infinite and NaN coordinates off the edge of the Mercator plane
 
 	int iy_class = fpclassify(iy);
@@ -73,23 +73,13 @@ void epsg3857totile(double ix, double iy, int zoom, long long *x, long long *y) 
 		ix = 40000000.0;
 	}
 
-	*x = ix * (1LL << 31) / 6378137.0 / M_PI + (1LL << 31);
-	*y = ((1LL << 32) - 1) - (iy * (1LL << 31) / 6378137.0 / M_PI + (1LL << 31));
-
-	if (zoom != 0) {
-		*x >>= (32 - zoom);
-		*y >>= (32 - zoom);
-	}
+	*x = (ix / (2 * M_PI * 6378137.0) + 0.5) * (1LL << zoom);
+	*y = (0.25 - iy / (2 * M_PI * 6378137.0)) * (1LL << zoom);
 }
 
-void tiletoepsg3857(long long ix, long long iy, int zoom, double *ox, double *oy) {
-	if (zoom != 0) {
-		ix <<= (32 - zoom);
-		iy <<= (32 - zoom);
-	}
-
-	*ox = (ix - (1LL << 31)) * M_PI * 6378137.0 / (1LL << 31);
-	*oy = ((1LL << 32) - 1 - iy - (1LL << 31)) * M_PI * 6378137.0 / (1LL << 31);
+void tiletoepsg4087(long long ix, long long iy, int zoom, double *ox, double *oy) {
+	*ox = (2.0 * ix / (1LL << zoom) - 1) * M_PI * 6378137.0;
+	*oy = (0.5 - 2.0 * iy / (1LL << zoom)) * M_PI * 6378137.0;
 }
 
 unsigned long long encode(unsigned int wx, unsigned int wy) {

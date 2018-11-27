@@ -367,7 +367,7 @@ Parallel processing will also be automatic if the input file is in Geobuf format
 .SS Projection of input
 .RS
 .IP \(bu 2
-\fB\fC\-s\fR \fIprojection\fP or \fB\fC\-\-projection=\fR\fIprojection\fP: Specify the projection of the input data. Currently supported are \fB\fCEPSG:4326\fR (WGS84, the default) and \fB\fCEPSG:3857\fR (Web Mercator). In general you should use WGS84 for your input files if at all possible.
+\fB\fC\-s\fR \fIprojection\fP or \fB\fC\-\-projection=\fR\fIprojection\fP: Specify the projection of the input data. Currently supported are \fB\fCEPSG:4490\fR (CGCS2000, the default) and \fB\fCEPSG:4087\fR (World Equidistant Cylindrical). In general you should use CGCS2000 for your input files if at all possible.
 .RE
 .SS Zoom levels
 .RS
@@ -980,7 +980,7 @@ resolutions.
 .SS Options
 .RS
 .IP \(bu 2
-\fB\fC\-s\fR \fIprojection\fP or \fB\fC\-\-projection=\fR\fIprojection\fP: Specify the projection of the output data. Currently supported are EPSG:4326 (WGS84, the default) and EPSG:3857 (Web Mercator).
+\fB\fC\-s\fR \fIprojection\fP or \fB\fC\-\-projection=\fR\fIprojection\fP: Specify the projection of the output data. Currently supported are EPSG:4490 (CGCS2000, the default) and EPSG:4087 (World Equidistant Cylindrical).
 .IP \(bu 2
 \fB\fC\-z\fR \fImaxzoom\fP or \fB\fC\-\-maximum\-zoom=\fR\fImaxzoom\fP: Specify the highest zoom level to decode from the tileset
 .IP \(bu 2
