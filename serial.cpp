@@ -318,6 +318,7 @@ static long long scale_geometry(struct serialization_state *sst, long long *bbox
 	long long offset = 0;
 	long long prev = 0;
 	bool has_prev = false;
+	double scale = 1.0 / (1 << geometry_scale);
 
 	for (size_t i = 0; i < geom.size(); i++) {
 		if (geom[i].op == VT_MOVETO || geom[i].op == VT_LINETO) {
@@ -365,12 +366,32 @@ static long long scale_geometry(struct serialization_state *sst, long long *bbox
 				*(sst->initialized) = 1;
 			}
 
-			geom[i].x = x >> geometry_scale;
-			geom[i].y = y >> geometry_scale;
+			if (additional[A_GRID_LOW_ZOOMS]) {
+				// If we are gridding, snap to the maxzoom grid in case the incoming data
+				// is already supposed to be aligned to tile boundaries (but is not, exactly,
+				// because of rounding error during projection).
+
+				geom[i].x = std::round(x * scale);
+				geom[i].y = std::round(y * scale);
+			} else {
+				geom[i].x = x >> geometry_scale;
+				geom[i].y = y >> geometry_scale;
+			}
 		}
 	}
 
 	return geom.size();
+}
+
+static std::string strip_zeroes(std::string s) {
+	// Doesn't do anything special with '-' followed by leading zeros
+	// since integer IDs must be positive
+
+	while (s.size() > 0 && s[0] == '0') {
+		s.erase(s.begin());
+	}
+
+	return s;
 }
 
 // called from frontends
@@ -595,7 +616,7 @@ int serialize_feature(struct serialization_state *sst, serial_feature &sf) {
 						fprintf(stderr, "Warning: Can't represent non-integer feature ID %s\n", sf.full_values[i].s.c_str());
 						warned_frac = true;
 					}
-				} else if (std::to_string(id_value) != sf.full_values[i].s) {
+				} else if (std::to_string(id_value) != strip_zeroes(sf.full_values[i].s)) {
 					static bool warned = false;
 
 					if (!warned) {
