@@ -35,7 +35,7 @@ void enumerate(char *fname) {
 			exit(EXIT_FAILURE);
 		}
 
-		y = (1LL << zoom) - 1 - y;
+		y = (zoom == 0) ? 0 : (1LL << (zoom - 1)) - 1 - y;
 		printf("%s %lld %lld %lld\n", fname, zoom, x, y);
 	}
 

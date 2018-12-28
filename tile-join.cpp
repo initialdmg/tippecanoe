@@ -453,7 +453,7 @@ struct reader *begin_reading(char *fname) {
 			r->zoom = sqlite3_column_int(stmt, 0);
 			r->x = sqlite3_column_int(stmt, 1);
 			r->sorty = sqlite3_column_int(stmt, 2);
-			r->y = (1LL << r->zoom) - 1 - r->sorty;
+			r->y = (r->zoom == 0) ? 0 : (1LL << (r->zoom - 1)) - 1 - r->sorty;
 
 			const char *data = (const char *) sqlite3_column_blob(stmt, 3);
 			size_t len = sqlite3_column_bytes(stmt, 3);

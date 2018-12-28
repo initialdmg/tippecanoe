@@ -82,7 +82,7 @@ void mbtiles_write_tile(sqlite3 *outdb, int z, int tx, int ty, const char *data,
 
 	sqlite3_bind_int(stmt, 1, z);
 	sqlite3_bind_int(stmt, 2, tx);
-	sqlite3_bind_int(stmt, 3, (1 << z) - 1 - ty);
+	sqlite3_bind_int(stmt, 3, (z == 0) ? 0 : (1 << (z - 1)) - 1 - ty);
 	sqlite3_bind_blob(stmt, 4, data, size, NULL);
 
 	if (sqlite3_step(stmt) != SQLITE_DONE) {
@@ -378,6 +378,42 @@ void mbtiles_write_metadata(sqlite3 *outdb, const char *outdir, const char *fnam
 
 	std::string version = program + " " + VERSION;
 	sql = sqlite3_mprintf("INSERT INTO metadata (name, value) VALUES ('generator', %Q);", version.c_str());
+	if (sqlite3_exec(db, sql, NULL, NULL, &err) != SQLITE_OK) {
+		fprintf(stderr, "set type: %s\n", err);
+		if (!forcetable) {
+			exit(EXIT_FAILURE);
+		}
+	}
+	sqlite3_free(sql);
+
+	sql = sqlite3_mprintf("INSERT INTO metadata (name, value) VALUES ('crs', %Q);", "EPSG:4490");
+	if (sqlite3_exec(db, sql, NULL, NULL, &err) != SQLITE_OK) {
+		fprintf(stderr, "set type: %s\n", err);
+		if (!forcetable) {
+			exit(EXIT_FAILURE);
+		}
+	}
+	sqlite3_free(sql);
+
+	sql = sqlite3_mprintf("INSERT INTO metadata (name, value) VALUES ('tile_origin_upper_left_x', %f);", -180.0);
+	if (sqlite3_exec(db, sql, NULL, NULL, &err) != SQLITE_OK) {
+		fprintf(stderr, "set type: %s\n", err);
+		if (!forcetable) {
+			exit(EXIT_FAILURE);
+		}
+	}
+	sqlite3_free(sql);
+
+	sql = sqlite3_mprintf("INSERT INTO metadata (name, value) VALUES ('tile_origin_upper_left_y', %f);", 90.0);
+	if (sqlite3_exec(db, sql, NULL, NULL, &err) != SQLITE_OK) {
+		fprintf(stderr, "set type: %s\n", err);
+		if (!forcetable) {
+			exit(EXIT_FAILURE);
+		}
+	}
+	sqlite3_free(sql);
+
+	sql = sqlite3_mprintf("INSERT INTO metadata (name, value) VALUES ('tile_dimension_zoom_0', %f);", 360.0);
 	if (sqlite3_exec(db, sql, NULL, NULL, &err) != SQLITE_OK) {
 		fprintf(stderr, "set type: %s\n", err);
 		if (!forcetable) {
