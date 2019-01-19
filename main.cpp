@@ -2470,7 +2470,7 @@ int main(int argc, char **argv) {
 	char *out_dir = NULL;
 	sqlite3 *outdb = NULL;
 	int maxzoom = 14;
-	int minzoom = 0;
+	int minzoom = 1;
 	int basezoom = -1;
 	double basezoom_marker_width = 1;
 	int force = 0;
