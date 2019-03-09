@@ -418,7 +418,7 @@ struct reader *begin_reading(char *fname) {
 			r->zoom = r->dirtiles[0].z;
 			r->x = r->dirtiles[0].x;
 			r->y = r->dirtiles[0].y;
-			r->sorty = (1LL << r->zoom) - 1 - r->y;
+			r->sorty = (r->zoom == 0) ? 0 : (1LL << (r->zoom - 1)) - 1 - r->y;
 			r->data = dir_read_tile(r->dirbase, r->dirtiles[0]);
 
 			r->dirtiles.erase(r->dirtiles.begin());
@@ -674,7 +674,7 @@ void decode(struct reader *readers, std::map<std::string, layermap_entry> &layer
 				r->zoom = sqlite3_column_int(r->stmt, 0);
 				r->x = sqlite3_column_int(r->stmt, 1);
 				r->sorty = sqlite3_column_int(r->stmt, 2);
-				r->y = (1LL << r->zoom) - 1 - r->sorty;
+				r->y = (r->zoom == 0) ? 0 : (1LL << (r->zoom - 1)) - 1 - r->sorty;
 				const char *data = (const char *) sqlite3_column_blob(r->stmt, 3);
 				size_t len = sqlite3_column_bytes(r->stmt, 3);
 
@@ -689,7 +689,7 @@ void decode(struct reader *readers, std::map<std::string, layermap_entry> &layer
 				r->zoom = r->dirtiles[0].z;
 				r->x = r->dirtiles[0].x;
 				r->y = r->dirtiles[0].y;
-				r->sorty = (1LL << r->zoom) - 1 - r->y;
+				r->sorty = (r->zoom == 0) ? 0 : (1LL << (r->zoom - 1)) - 1 - r->y;
 				r->data = dir_read_tile(r->dirbase, r->dirtiles[0]);
 
 				r->dirtiles.erase(r->dirtiles.begin());
